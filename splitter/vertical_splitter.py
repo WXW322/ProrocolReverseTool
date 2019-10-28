@@ -1,5 +1,5 @@
 from common.readdata import *
-from merger.base_merger import base_merger
+from common.Merger.base_merger import base_merger
 from protocol_analysis.word_simple import word_infer
 from Fields_info.const_field import loc_field
 from common.Converter.base_convert import Converter

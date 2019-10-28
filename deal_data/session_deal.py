@@ -5,9 +5,7 @@ import scapy.all as scapy
 from scapy.utils import PcapReader,PcapWriter
 import sys
 import os
-sys.path.append('../classify_6/frequent_find')
-import series_find
-import find_one
+
 class session_deal:
     def __init__(self,filename):
         if filename != "":

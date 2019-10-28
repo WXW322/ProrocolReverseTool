@@ -6,8 +6,8 @@ import os
 import sys
 import words_basic
 import numpy as np
-sys.path.append('../deal_data')
-import session_deal
+
+from deal_data.session_deal import session_deal
 
 class message_dealer:
     def __init__(self):
@@ -186,7 +186,7 @@ class message_dealer:
     def findseid(self,lo_s,lo_e):
         t_serate = 0
         i = 0
-        t_clus = session_deal.session_deal("")
+        t_clus = session_deal("")
         for message in self.semessages:
             me_src,me_des = t_clus.clus_sesionbydi(message[0])
             if(len(me_src) ==0 or len(me_des) == 0):

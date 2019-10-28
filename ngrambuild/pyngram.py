@@ -2,19 +2,16 @@ from netzob.all import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 import numpy as np
-import sys
-import time
-import os
-import sys
-import json
 import time
 from log_info.logger import get_logger, vote_pre
-import common.readdata
+from common.readdata import *
 from Config.ve_strategy import ve_strategy
 from Config.log_config import log_path
-from Data_base.Data_redis.redis_deal import redis_deal
 from Config.encode_types import Message_encoder
 from common.Converter.base_convert import Converter
+from Data_base.Data_redis.redis_deal import redis_deal
+from Config.UserConfig import UserConfig
+from Config.VeConfig import VeConfig
 
 now_time = time.strftime("%Y-%m-%d %H:%m:%s", time.localtime(time.time()))
 voter_logger = get_logger(log_path + '/message_vote' + vote_pre + now_time, 'messagedetaillogger')
@@ -29,6 +26,7 @@ class voters:
         self.words_entry = None
         self.glvotes = None
         self.svotes = None
+        self.redisDeal = redis_deal()
 
     def query_key(self,key):
         return self.words_table[key],self.words_fre[key],self.words_entry[key]
@@ -45,7 +43,6 @@ class voters:
                 message: a list o bytes
                 return : str of n-gram items
                 """
-        t_list = []
         t_len = len(message)
         i = 0
         t_flist = ''
@@ -174,6 +171,9 @@ class voters:
         for key in t_dics:
             t_frer[key] = -np.log(t_dics[key] / t_fredic[len(key.split(' '))])
             t_biaozhun[len(key.split(' '))].append(t_frer[key])
+        for key in t_biaozhun:
+            print(key)
+            print(t_biaozhun[key])
         #redis_writer.insert_to_redis('raw_frequent', t_frer)
         for i in range(1,nrange + 1):
             t_mean[i] = np.mean(np.array(t_biaozhun[i]))
@@ -233,6 +233,40 @@ class voters:
             else:
                 t_entrys[key] = (t_entrys[key] - t_entrymean[len(key.split(' '))]) / (t_entrystd[len(key.split(' '))])
         return t_entrys
+
+    def getQueryWords(self, key):
+        key = key + '_' + 'RawWords'
+        keyWords = {}
+        if self.redisDeal.is_exist_key(key):
+            keyWords = self.redisDeal.read_from_redis(key)
+        else:
+            messages = read_datas(UserConfig.path, 'single')
+            messages = get_puredatas(messages)
+            keyWords = self.get_keywords(messages, VeConfig.veParameters['height']+1)
+            self.redisDeal.insert_to_redis(key, keyWords)
+        return keyWords
+
+    def getQueryFrequentWords(self, key):
+        freWords = {}
+        freKey = key + '_' + 'FreWords'
+        if self.redisDeal.is_exist_key(freKey):
+            freWords = self.redisDeal.read_from_redis(freKey)
+        else:
+            rawWords = self.getQueryWords(key)
+            freWords = self.get_frequent(rawWords, VeConfig.veParameters['height'] + 1)
+            self.redisDeal.insert_to_redis(freKey, freWords)
+        return freWords
+
+    def getQueryEntryWords(self, key):
+        entryWords = {}
+        entryKey = key + '_' + 'EntryWords'
+        if self.redisDeal.is_exist_key(entryKey):
+            entryWords = self.redisDeal.read_from_redis(entryWords)
+        else:
+            rawWords = self.getQueryWords(key)
+            entryWords = self.get_backentry(rawWords, VeConfig.veParameters['height'] + 1)
+            self.redisDeal.insert_to_redis(entryKey, entryWords)
+        return entryWords
 
     def s2key(self, ses, start=None):
         """

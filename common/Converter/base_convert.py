@@ -1,10 +1,9 @@
 from common.readdata import *
 import numpy as np
 from Config.ve_strategy import ve_strategy
-import sys
 from sklearn.feature_extraction.text import CountVectorizer
 from Data_base.Data_redis.redis_deal import redis_convert
-import math
+from Config.VeConfig import VeConfig
 
 class Converter:
     def __init__(self):
@@ -19,7 +18,7 @@ class Converter:
                 phrase = phrase + ' ' + str(message[i])
         return phrase
 
-    def ConvertRawToLengthText(self, message):
+    def ConvertRawToLengthText(self, message, delimeter=' '):
         """
         converse a message to n-gram item
         message: a list o bytes
@@ -29,16 +28,17 @@ class Converter:
         t_len = len(message)
         i = 0
         t_flist = ''
-        h = ve_strategy().vote_parameters['height']
+        h = VeConfig.veParameters['height']
         while (i < t_len):
             if (len(t_flist) == 0):
                 t_flist = t_flist + str(message[i])
             else:
-                t_flist = t_flist + ' ' + str(message[i])
+                t_flist = t_flist + delimeter + str(message[i])
             i = i + 1
         i = 0
         while(i < h):
-            t_flist = t_flist + ' ' + ve_strategy().vote_parameters['stop_words']
+            #t_flist = t_flist + delimeter + ve_strategy().vote_parameters['stop_words']
+            t_flist = t_flist + delimeter + VeConfig.veParameters['stopWord']
             i = i + 1
         return t_flist
 
@@ -57,7 +57,7 @@ class Converter:
         return t_lists
 
     def filter_words(self, t_dic):
-        stop_word = ve_strategy().vote_parameters['stop_words']
+        stop_word = VeConfig.veParameters['stopWord']
         t_words_new = {}
         for key in t_dic:
             if key.find(stop_word) == -1:
@@ -71,7 +71,7 @@ class Converter:
         t_dics: dict words and its frequent
         """
         t_inputs = [self.ConvertRawToLengthTexts(messages)]
-        length = ve_strategy().vote_parameters['height'] + 1
+        length = VeConfig.veParameters['height'] + 1
         vetorizer = CountVectorizer(ngram_range=(1, length), stop_words=[' ', '.'], token_pattern='(?u)\\b\\w\\w*\\b')
         X = vetorizer.fit_transform(t_inputs)
         t_arrays = np.squeeze(X.toarray())
@@ -253,7 +253,6 @@ word_converter = Converter()
 
 if __name__ == '__main__':
     counter = Converter()
-    #raw_keys = ve_strategy().GetWordsKeys('RawWords')
     #raw_words = redis_convert.read_from_redis(raw_keys)
     #frequent_words = Converter().ConvertRawToNormalFrequent(raw_words, ve_strategy().vote_parameters['height'] + 1)
     datas = read_datas('/home/wxw/data/iec104', 'single')

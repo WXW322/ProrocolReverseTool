@@ -1,14 +1,13 @@
 from scapy.all import *
 import re
-import sys
-sys.path.append("../Config/")
-import iec104
-import modbus
-import httpwe
-import cip
-import ftp
+from Config.iec104 import iec104
+from Config.modbus import modbus
+from Config.httpwe import http
+from Config.cip import cip
+from Config.ftp import ftp
 import os
 import time
+from common.Converter.base_convert import Converter
 
 class p_dealer:
     def __init__(self):
@@ -29,20 +28,6 @@ class p_dealer:
         self.datas = t_f
         return t_f
 
-    def data2sen(self, s):
-        """
-        transform data to string
-        eg: 000908
-        0_9_8_
-        """
-        t_f = ""
-        t_len = len(s)
-        i = 0
-        while(i < t_len):
-            t_f = t_f + str(s[i])
-            t_f = t_f + '_'
-            i = i + 1
-        return t_f
 
     def transform(self, datas):
         """
@@ -50,7 +35,7 @@ class p_dealer:
         """
         t_r = []
         for data in datas:
-            t_r.append(self.data2sen(data))
+            t_r.append(Converter().ConvertRawToLengthText(data, '_'))
         return t_r
 
     def data2str(self, datas):
@@ -60,8 +45,8 @@ class p_dealer:
         return t_r
 
     def write_packet(self, path, datas = None):
-        #fileone = open(path)
-        #writer = PcapWriter(fileone, append = True)
+        fileone = open(path)
+        writer = PcapWriter(fileone, append = True)
         if datas == None:
             for data in self.datas:
                 writer.write(data)
@@ -149,22 +134,22 @@ class p_dealer:
             if 'Raw' in data:
                 raw_datas.append(data['Raw'].__bytes__())
         if pro == 'modbus':
-            modbusone = modbus.modbus()
+            modbusone = modbus()
             _,_,T_datas = self.get_clsbylos(raw_datas, modbusone.lo)
             #samp_data = self.sample(T_datas, 20)
         elif pro == 'iec104':
-            iecone = iec104.iec104()
+            iecone = iec104()
             s_datas = self.transform(raw_datas)
             _,_,T_datas = self.get_clsbyre(s_datas, iecone.res)
         elif pro == 'cip':
-            cipone = cip.cip() 
+            cipone = cip()
             _,_,T_datas = self.get_clsbylos(raw_datas, cipone.lo)
         elif pro == 'http':
-            httpone = httpwe.http()
+            httpone = http()
             s_datas = self.transform(raw_datas)
             _,_,T_datas = self.get_clsbyre(s_datas, httpone.res)
         elif pro == 'ftp':
-            ftpone = ftp.ftp()
+            ftpone = ftp()
             s_datas = self.transform(raw_datas)
             _,_,T_datas = self.get_clsbyre(s_datas, ftpone.res)
         samp_data = self.sample(T_datas, 20)

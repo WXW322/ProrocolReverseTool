@@ -1,9 +1,6 @@
-from field_discover import words_discover
-import logging
-import sys
+from Fields_info.field_discover import words_discover
 from log_info.logger import get_logger, vote_pre
-from fields_measure import Fields_measure
-from Config.iec104 import iec104
+from Fields_info.fields_measure import Fields_measure
 from Config.modbus import modbus
 from common.f_cg import transer
 from common.Converter.base_convert import Converter

@@ -4,12 +4,8 @@ import math
 import os
 import sys
 from Inference.words_basic import words_base
-import numpy as np
-from common.f_cg import transer
-from deal_data.session_deal import session_deal
 from common.readdata import *
 from common.Converter.base_convert import Converter
-from common.Converter.MessageConvert import MessageConvert
 from common.analyzer.analyzer_common import base_analyzer
 
 class message_dealer:

@@ -1,21 +1,15 @@
-from netzob.all import *
-from treelib import *
-import numpy as np
-import time
 from ngrambuild.pyngram import voters
 from common.f_cg import transer
 from common.readdata import *
 from Data_base.Data_redis.redis_deal import redis_deal
 from Config.ve_strategy import ve_strategy
-import json
 from common.Converter.word_converter import word_convert
 from common.Converter.base_convert import Converter
-from common.ranker import ranker
 from ngrambuild.frequent_voter import frequence_voter
 from ngrambuild.entry_voter import Entry_voter
 from ngrambuild.OrderVoter import OrderVoter
 from ngrambuild.Desiner import Desiner
-import sys
+from Config.UserConfig import UserConfig,VeConfig
 
 
 class splitter:
@@ -24,6 +18,7 @@ class splitter:
         self.prefix = ve_strategy().get_strategy_str()
         self.redis_read = redis_deal()
         self.parameters = ve_strategy().vote_parameters
+        self.ngram = voters()
 
     def split_by_ve(self, messages, h, combine, model, v_way, T=0, r=0, ways="g"):
         voter = voters()
@@ -53,15 +48,9 @@ class splitter:
             self.redis_read.insert_to_redis(keys, entry_words)
         entry_voter = Entry_voter(entry_words)
         PrimBorders = entry_voter.vote_for_messages(messages, self.parameters['height'])
-        print(PrimBorders[0])
-        print(PrimBorders[1])
-        print(word_convert().convert_raw_to_text(messages[0]))
-        print(word_convert().convert_raw_to_text(messages[1]))
         FinalBorders = Desiner().VoteMultiM(PrimBorders, self.parameters['diff_measure'],
                                             self.parameters['decision_type'],
                                             self.parameters['Threshold_T'], self.parameters['Threshod_R'])
-        print(FinalBorders[0])
-        print(FinalBorders[1])
         return Converter().ConvertListToOrder(FinalBorders)
 
 
@@ -113,13 +102,19 @@ class splitter:
         return Converter().MergeListGroup(BorderA, BorderB)
 
 
+    def getFreVotes(self, ConfigParas, messages):
+        freKey = ConfigParas.getUserPathDynamic() + 'FreWords'
+        freWords = self.ngram.getQueryFrequentWords(freKey)
+        freVoter = frequence_voter(freWords)
+        primBorders = freVoter.vote_for_messages(messages, VeConfig.veParameters['height'])
+        return primBorders
 
-
-
-
-
-
-
+    def getEntryVotes(self, conFigParas, messages):
+        entryKey = conFigParas.getUserPathDynamic() + 'EntryWords'
+        entryWords = self.ngram.getQueryEntryWords(entryKey)
+        entryVoter = Entry_voter(entryWords)
+        primBorders = entryVoter.vote_for_messages(messages, VeConfig.veParameters['height'])
+        return primBorders
 
 
 

@@ -29,7 +29,23 @@ def read_datas(dirs,ways = "single"):
             t_datas.append(t_data)
     return t_datas
  
+def getSummary(data, lo):
+    dataSummary = {}
+    dataSummary['id'] = lo
+    lo = str(data.date).find('.')
+    dataSummary['time'] = '0' + str(data.date)[lo:]
+    dataSummary['source'] = data.source
+    dataSummary['destination'] = data.destination
+    dataSummary['length'] = str(len(data.data))
+    return dataSummary
 
+def getSummaries(datas, start):
+    i = 0
+    resultsSummary = []
+    while(i < len(datas)):
+        resultsSummary.append(getSummary(datas[i], start + i))
+        i = i + 1
+    return resultsSummary
 
 def get_puredatas(datas):
     t_fdata = []
@@ -111,7 +127,11 @@ def cut_messages(messages, range):
 
 if __name__ == '__main__':
     datas = read_datas('/home/wxw/data/modbustest', 'single')
+    dataSums = getSummaries(datas[1:20], 0)
+    for sum in dataSums:
+        print(sum)
+    #print(dir(datas[0]))
     datas = get_puredatas(datas)
     datas = get_data_bylo(datas, 2, 5)
-    print(datas)
+    #print(datas)
 

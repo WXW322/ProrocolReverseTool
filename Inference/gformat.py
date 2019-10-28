@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import time
 from ngrambuild.pyngram import voters
-from classer.parse import parse
+from common.classer.parse import parse
 from common.readdata import *
 from common.output import R_out
 import time

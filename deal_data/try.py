@@ -1,11 +1,5 @@
-from netzob.all import *
-from pyshark import *
-import scapy.all as scapy
-from scapy.utils import PcapReader,PcapWriter
-import sys
-import struct
-import numpy as np
-sys.path.append('../classify_6/frequent_find')
+
+
 
 
 def get_evisession(datas,t_lo,gap):

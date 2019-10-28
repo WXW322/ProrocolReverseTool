@@ -1,9 +1,5 @@
 from common.readdata import *
-from merger.base_merger import base_merger
-from protocol_analysis.word_simple import word_infer
-from Fields_info.const_field import loc_field
 from common.Converter.word_converter import word_convert
-from common.analyzer.analyzer_common import base_analyzer
 from splitter.vertical_splitter import vertical_splitter
 from splitter.VE_spliter import splitter
 
